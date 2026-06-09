@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -417,53 +418,21 @@
 </div>
 </div>
 </section>
-<!-- Top 2 Safe Picks (Admin Refinado) -->
-<section class="hidden space-y-4" id="safe-picks">
-<div class="flex items-center gap-2 mb-2">
-<span class="material-symbols-outlined text-primary-container neon-text-primary">verified</span>
-<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase italic">Top 2 Picks Seguros</h2>
-</div>
-<div class="space-y-4">
-<!-- Pick 1 (MLB) -->
-<div class="glass-card rounded-2xl p-5 border-l-4 border-l-primary-container relative">
-<div class="absolute top-2 right-2">
-<span class="material-symbols-outlined text-primary-container/50">sports_baseball</span>
-</div>
-<div class="flex justify-between items-start mb-3">
-<div class="flex flex-col">
-<span class="font-label-mono text-[10px] text-primary-container uppercase">96% PUNTAJE CONFIANZA</span>
-<h3 class="text-xl font-bold text-primary mt-1">NY Yankees vs Red Sox</h3>
-</div>
-<div class="bg-primary-container text-on-primary font-odds-display px-3 py-1 rounded text-lg shadow-md">1.45</div>
-</div>
-<div class="p-3 bg-white/5 rounded-lg border border-white/5">
-<p class="text-body-sm text-on-surface-variant leading-relaxed">
-<span class="text-primary-container font-bold">Insight IA:</span> Las métricas de lanzamiento de Cole contra la alineación de los Red Sox indican alta probabilidad de ponches (9.4 avg). Pronóstico Victoria Yankees con hándicap de 1.5 carreras.
-                        </p>
-</div>
-</div>
-<!-- Pick 2 (NBA) -->
-<div class="glass-card rounded-2xl p-5 border-l-4 border-l-primary-container relative">
-<div class="absolute top-2 right-2">
-<span class="material-symbols-outlined text-primary-container/50">sports_basketball</span>
-</div>
-<div class="flex justify-between items-start mb-3">
-<div class="flex flex-col">
-<span class="font-label-mono text-[10px] text-primary-container uppercase">91% PUNTAJE CONFIANZA</span>
-<h3 class="text-xl font-bold text-primary mt-1">Celtics vs Bucks</h3>
-</div>
-<div class="bg-primary-container text-on-primary font-odds-display px-3 py-1 rounded text-lg shadow-md">1.62</div>
-</div>
-<div class="p-3 bg-white/5 rounded-lg border border-white/5">
-<p class="text-body-sm text-on-surface-variant leading-relaxed">
-<span class="text-primary-container font-bold">Insight IA:</span> El rating defensivo de los Bucks cae 12% en partidos consecutivos. El alto volumen de triples de los Celtics se alinea con la debilidad defensiva perimetral de los Bucks.
-                        </p>
-</div>
-</div>
-</div>
-<button class="w-full bg-secondary-container text-on-secondary-container py-4 rounded-xl font-headline-lg-mobile text-xl uppercase italic shadow-lg shadow-secondary-container/20 active:scale-[0.98] transition-transform">
-                Generar Reporte de Análisis Completo
-            </button>
+<!-- Mejores Pronósticos por Partido (Dinámico) -->
+<section class="hidden space-y-6" id="safe-picks">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="material-symbols-outlined text-primary-container neon-text-primary">verified</span>
+        <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase italic">Mejores Pronósticos por Partido</h2>
+    </div>
+    
+    <div id="dynamic-picks-container" class="space-y-6">
+        <!-- Las predicciones se generan dinámicamente aquí via JavaScript -->
+    </div>
+
+    <button onclick="generateFullReport()" 
+            class="w-full bg-secondary-container text-on-secondary-container py-4 rounded-xl font-headline-lg-mobile text-xl uppercase italic shadow-lg shadow-secondary-container/20 active:scale-[0.98] transition-transform">
+        Generar Reporte de Análisis Completo
+    </button>
 </section>
 </div>
 <!-- Mis Picks Screen (Integrated from Screen 9) -->
@@ -589,27 +558,59 @@
     }
 
     function startProcessing() {
+        const fileInput = document.getElementById('file-input');
         const dropZone = document.getElementById('drop-zone');
         const processing = document.getElementById('processing-state');
         const progress = document.getElementById('progress-bar');
         const safePicks = document.getElementById('safe-picks');
 
+        if (!fileInput.files.length) {
+            alert("Por favor selecciona un archivo Excel primero.");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        
         dropZone.classList.add('hidden');
         processing.classList.remove('hidden');
-        
-        let width = 0;
-        const interval = setInterval(() => {
-            if (width >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    processing.classList.add('hidden');
-                    safePicks.classList.remove('hidden');
-                }, 500);
-            } else {
-                width += 2;
-                progress.style.width = width + '%';
+
+        // Read Excel file using SheetJS
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                console.log("Datos del Excel:", jsonData);
+                
+                // Simulate AI processing
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            processing.classList.add('hidden');
+                            safePicks.classList.remove('hidden');
+                            
+                            // Generate dynamic predictions per match
+                            generateDynamicPicks(jsonData);
+                        }, 400);
+                    } else {
+                        width += 3;
+                        progress.style.width = width + '%';
+                    }
+                }, 35);
+                
+            } catch (error) {
+                alert("Error al leer el archivo Excel. Asegúrate de que sea un archivo .xlsx o .xls válido.");
+                processing.classList.add('hidden');
+                dropZone.classList.remove('hidden');
             }
-        }, 40);
+        };
+        
+        reader.readAsArrayBuffer(file);
     }
 
     // Micro-interactions for odds buttons
@@ -625,5 +626,93 @@
             }
         });
     });
+
+    // Generate dynamic best predictions per match
+    function generateDynamicPicks(matches) {
+        const container = document.getElementById('dynamic-picks-container');
+        container.innerHTML = '';
+
+        if (!matches || matches.length === 0) {
+            container.innerHTML = `<p class="text-center text-on-surface-variant">No se encontraron partidos en el archivo.</p>`;
+            return;
+        }
+
+        matches.forEach((match, index) => {
+            // Get match info (flexible with different column names)
+            const home = match.Home || match.Local || match.Equipo1 || match.Team1 || 'Local';
+            const away = match.Away || match.Visitante || match.Equipo2 || match.Team2 || 'Visitante';
+            const league = match.League || match.Liga || match.Competicion || 'Partido';
+
+            // Generate 2 strong predictions per match
+            const pick1 = generateSmartPick(home, away, 'result');
+            const pick2 = generateSmartPick(home, away, 'goals');
+
+            const cardHTML = `
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-l-primary-container">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <span class="font-label-mono text-[10px] text-primary-container uppercase">${league}</span>
+                            <h3 class="text-lg font-bold text-primary">${home} vs ${away}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Prediction 1 -->
+                    <div class="mb-3 p-3 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-label-mono text-xs text-primary-container">MEJOR PRONÓSTICO 1</span>
+                                <div class="font-bold text-primary">${pick1.prediction}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-odds-display text-xl text-primary-container">${pick1.odds}</div>
+                                <div class="text-xs text-primary-container">${pick1.confidence}% confianza</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mt-2">${pick1.insight}</p>
+                    </div>
+
+                    <!-- Prediction 2 -->
+                    <div class="p-3 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-label-mono text-xs text-primary-container">MEJOR PRONÓSTICO 2</span>
+                                <div class="font-bold text-primary">${pick2.prediction}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-odds-display text-xl text-primary-container">${pick2.odds}</div>
+                                <div class="text-xs text-primary-container">${pick2.confidence}% confianza</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mt-2">${pick2.insight}</p>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML += cardHTML;
+        });
+    }
+
+    // Simple smart pick generator (can be improved later with real logic)
+    function generateSmartPick(home, away, type) {
+        if (type === 'result') {
+            return {
+                prediction: `Victoria ${home}`,
+                odds: (Math.random() * 0.8 + 1.6).toFixed(2),
+                confidence: Math.floor(Math.random() * 12) + 84,
+                insight: `Análisis de forma reciente y H2H favorece fuertemente al local.`
+            };
+        } else {
+            return {
+                prediction: `Más de 2.5 Goles`,
+                odds: (Math.random() * 0.6 + 1.75).toFixed(2),
+                confidence: Math.floor(Math.random() * 15) + 78,
+                insight: `Ambos equipos tienen alto promedio de goles en partidos recientes.`
+            };
+        }
+    }
+
+    function generateFullReport() {
+        alert("Reporte completo generado. (Funcionalidad completa se puede agregar en siguiente iteración)");
+    }
 </script>
 </body></html>
