@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .active-odds {
+            border-color: #abd600;
+            box-shadow: 0 0 15px rgba(171, 214, 0, 0.5);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .drawer-open {
+            transform: translateX(0) !important;
+        }
+        .screen-hidden {
+            display: none !important;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 10px rgba(195, 244, 0, 0.3);
+        }
+        .neon-text-primary {
+            text-shadow: 0 0 8px rgba(195, 244, 0, 0.5);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-error-container": "#ffdad6",
+                      "on-primary-container": "#556d00",
+                      "surface-container-high": "#2a2a2a",
+                      "background": "#131313",
+                      "on-secondary-fixed-variant": "#003fa4",
+                      "inverse-primary": "#506600",
+                      "tertiary-container": "#ffdad5",
+                      "on-primary": "#283500",
+                      "outline-variant": "#444933",
+                      "on-tertiary": "#690003",
+                      "surface-bright": "#393939",
+                      "error": "#ffb4ab",
+                      "primary-fixed-dim": "#abd600",
+                      "on-surface-variant": "#c4c9ac",
+                      "on-tertiary-fixed": "#410001",
+                      "on-error": "#690005",
+                      "on-background": "#e5e2e1",
+                      "secondary-container": "#0266ff",
+                      "surface-tint": "#abd600",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "primary-fixed": "#c3f400",
+                      "tertiary-fixed-dim": "#ffb4aa",
+                      "secondary-fixed-dim": "#b3c5ff",
+                      "primary": "#ffffff",
+                      "on-tertiary-container": "#ca0a0f",
+                      "on-secondary": "#002b75",
+                      "surface-container-lowest": "#0e0e0e",
+                      "surface-container": "#201f1f",
+                      "on-tertiary-fixed-variant": "#930005",
+                      "on-primary-fixed": "#161e00",
+                      "tertiary-fixed": "#ffdad5",
+                      "on-surface": "#e5e2e1",
+                      "primary-container": "#c3f400",
+                      "surface-container-highest": "#353534",
+                      "surface-dim": "#131313",
+                      "surface-variant": "#353534",
+                      "secondary": "#b3c5ff",
+                      "tertiary": "#ffffff",
+                      "secondary-fixed": "#dae1ff",
+                      "surface-container-low": "#1c1b1b",
+                      "surface": "#131313",
+                      "inverse-surface": "#e5e2e1",
+                      "error-container": "#93000a",
+                      "outline": "#8e9379",
+                      "on-secondary-container": "#f9f7ff",
+                      "inverse-on-surface": "#313030",
+                      "on-secondary-fixed": "#001849"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-mobile": "16px",
+                      "gutter": "12px",
+                      "margin-desktop": "32px",
+                      "container-max": "1200px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Inter"],
+                      "headline-xl": ["Archivo Narrow"],
+                      "headline-lg-mobile": ["Archivo Narrow"],
+                      "odds-display": ["Archivo Narrow"],
+                      "headline-lg": ["Archivo Narrow"],
+                      "body-md": ["Inter"],
+                      "label-mono": ["JetBrains Mono"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-xl": ["40px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "28px", "fontWeight": "700"}],
+                      "odds-display": ["20px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden min-h-screen">
+<!-- Navigation Drawer -->
+<div class="fixed inset-0 z-[60] -translate-x-full transition-transform duration-300 pointer-events-none" id="nav-drawer">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" onclick="toggleDrawer()"></div>
+<div class="absolute top-0 left-0 w-[280px] h-full bg-surface-container-low shadow-2xl pointer-events-auto flex flex-col">
+<div class="p-6 border-b border-white/5">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary-container italic tracking-tighter neon-text-primary">VELOCITY</h1>
+</div>
+<nav class="flex-1 p-4 space-y-2 overflow-y-auto no-scrollbar">
+<a class="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 text-primary" href="#" onclick="showScreen('home-screen'); toggleDrawer();">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-mono uppercase text-sm">Panel Principal</span>
+</a>
+<div class="my-4 border-t border-white/5 pt-4">
+<p class="px-3 text-[10px] font-label-mono text-on-surface-variant uppercase mb-2">Cobertura Deportiva</p>
+<a class="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined text-primary-container">soccer_balls</span>
+<span class="font-label-mono uppercase text-sm">Fútbol</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined text-primary-container">sports_basketball</span>
+<span class="font-label-mono uppercase text-sm">NBA / Baloncesto</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined text-primary-container">sports_football</span>
+<span class="font-label-mono uppercase text-sm">NFL / Fútbol Am.</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined text-primary-container">sports_baseball</span>
+<span class="font-label-mono uppercase text-sm">MLB / Béisbol</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined text-primary-container">sports_tennis</span>
+<span class="font-label-mono uppercase text-sm">ATP / WTA Tenis</span>
+</a>
+</div>
+<div class="my-4 border-t border-white/5 pt-4">
+<p class="px-3 text-[10px] font-label-mono text-on-surface-variant uppercase mb-2">Administración</p>
+<a class="flex items-center gap-4 p-3 rounded-lg bg-primary-container/10 text-primary-container border border-primary-container/20 neon-glow-primary" href="#" onclick="showScreen('admin-screen'); toggleDrawer();">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-label-mono uppercase text-sm">Subir Excel</span>
+</a>
+</div>
+</nav>
+</div>
+</div>
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md text-primary-container border-b border-white/10 flex justify-between items-center px-margin-mobile h-14">
+<div class="flex items-center gap-4">
+<button class="transition-all duration-200 active:scale-95 hover:opacity-80" onclick="toggleDrawer()">
+<span class="material-symbols-outlined text-primary-container">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary-container italic tracking-tighter neon-text-primary" id="page-title">VELOCITY APUESTAS</h1>
+</div>
+<button class="transition-all duration-200 active:scale-95 hover:opacity-80">
+<span class="material-symbols-outlined text-primary-container">account_circle</span>
+</button>
+</header>
+<!-- Main Screens Container -->
+<main class="pt-14 pb-20">
+<!-- Home Screen -->
+<div class="" id="home-screen">
+<!-- Sport Category Scroll -->
+<section class="relative z-10 py-6 overflow-hidden">
+<div class="flex overflow-x-auto gap-gutter px-margin-mobile no-scrollbar">
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-secondary-container text-on-secondary-container font-label-mono text-label-mono flex items-center gap-2 neon-glow-primary">
+<span class="material-symbols-outlined text-[18px]">soccer_balls</span> Fútbol
+                </button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-mono text-label-mono flex items-center gap-2 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]">sports_basketball</span> NBA
+                </button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-mono text-label-mono flex items-center gap-2 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]">sports_football</span> NFL
+                </button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-mono text-label-mono flex items-center gap-2 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]">sports_baseball</span> MLB
+                </button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-mono text-label-mono flex items-center gap-2 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]">sports_tennis</span> Tenis
+                </button>
+</div>
+</section>
+<!-- Featured Now - Live Matches -->
+<section class="relative z-10 px-margin-mobile mb-8">
+<div class="flex justify-between items-end mb-4">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary flex items-center gap-2">
+<span class="w-2 h-2 bg-error rounded-full animate-pulse"></span>
+                    DESTACADO AHORA
+                </h2>
+<button class="text-primary-container font-label-mono text-label-mono uppercase">Ver Todo</button>
+</div>
+<div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
+<!-- Card 1 (Soccer) -->
+<div class="glass-card flex-shrink-0 w-[85%] p-4 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container/20 group-hover:bg-primary-container transition-colors"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="bg-error/20 text-error px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase">En Vivo • 74'</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_vert</span>
+</div>
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary text-[18px]">soccer_balls</span>
+</div>
+<span class="font-headline-lg-mobile text-body-md text-primary">Manchester City</span>
+</div>
+<span class="font-odds-display text-odds-display text-primary">2</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary text-[18px]">soccer_balls</span>
+</div>
+<span class="font-headline-lg-mobile text-body-md text-primary">Real Madrid</span>
+</div>
+<span class="font-odds-display text-odds-display text-primary">1</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<button class="bg-surface-container-low border border-white/5 py-2 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all">
+<span class="text-on-surface-variant text-[10px] uppercase font-label-mono">1</span>
+<span class="text-primary-container font-odds-display text-[16px]">1.85</span>
+</button>
+<button class="bg-surface-container-low border border-white/5 py-2 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all">
+<span class="text-on-surface-variant text-[10px] uppercase font-label-mono">X</span>
+<span class="text-primary-container font-odds-display text-[16px]">3.40</span>
+</button>
+<button class="bg-surface-container-low border border-white/5 py-2 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all active-odds">
+<span class="text-on-surface-variant text-[10px] uppercase font-label-mono">2</span>
+<span class="text-primary-container font-odds-display text-[16px]">4.20</span>
+</button>
+</div>
+</div>
+<!-- Card 2 (NBA) -->
+<div class="glass-card flex-shrink-0 w-[85%] p-4 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-secondary-container/20 group-hover:bg-secondary-container transition-colors"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="bg-error/20 text-error px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase">En Vivo • 3er C</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_vert</span>
+</div>
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary text-[18px]">sports_basketball</span>
+</div>
+<span class="font-headline-lg-mobile text-body-md text-primary">LA Lakers</span>
+</div>
+<span class="font-odds-display text-odds-display text-primary">88</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary text-[18px]">sports_basketball</span>
+</div>
+<span class="font-headline-lg-mobile text-body-md text-primary">GS Warriors</span>
+</div>
+<span class="font-odds-display text-odds-display text-primary">92</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<button class="bg-surface-container-low border border-white/5 py-2 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all">
+<span class="text-on-surface-variant text-[10px] uppercase font-label-mono">LOCAL</span>
+<span class="text-primary-container font-odds-display text-[16px]">2.10</span>
+</button>
+<button class="bg-surface-container-low border border-white/5 py-2 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all">
+<span class="text-on-surface-variant text-[10px] uppercase font-label-mono">VISITA</span>
+<span class="text-primary-container font-odds-display text-[16px]">1.75</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Upcoming Big Games -->
+<section class="relative z-10 px-margin-mobile mb-8">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary-container animate-pulse neon-text-primary">verified</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase tracking-tight italic">Top 2 Picks IA</h2>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Pick 1 (NFL) -->
+<div class="glass-card rounded-2xl p-5 border-l-4 border-l-primary-container active-odds relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2 flex flex-col items-end gap-1">
+<span class="bg-primary-container/20 text-primary-container px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase">IA Verificada</span>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-primary-container">sports_football</span>
+</div>
+</div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col">
+<span class="font-label-mono text-[10px] text-primary-container uppercase tracking-wider">98% Confianza</span>
+<h3 class="text-xl font-bold text-primary mt-1">Chiefs vs Eagles</h3>
+<p class="text-on-surface-variant text-body-sm">Mercado: <span class="text-primary">Victoria Local (-3.5)</span></p>
+</div>
+<div class="bg-primary-container text-on-primary font-odds-display px-4 py-2 rounded-lg text-xl shadow-lg shadow-primary-container/20">1.95</div>
+</div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[98%]"></div>
+</div>
+</div>
+<!-- Pick 2 (Tennis) -->
+<div class="glass-card rounded-2xl p-5 border-l-4 border-l-secondary-container relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2 flex flex-col items-end gap-1">
+<span class="bg-secondary-container/20 text-secondary text-[10px] px-2 py-0.5 rounded font-bold tracking-widest uppercase">IA Verificada</span>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-secondary">sports_tennis</span>
+</div>
+</div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col">
+<span class="font-label-mono text-[10px] text-secondary uppercase tracking-wider">94% Confianza</span>
+<h3 class="text-xl font-bold text-primary mt-1">Alcaraz vs Djokovic</h3>
+<p class="text-on-surface-variant text-body-sm">Mercado: <span class="text-primary">Más de 22.5 Juegos</span></p>
+</div>
+<div class="bg-secondary-container text-on-secondary-container font-odds-display px-4 py-2 rounded-lg text-xl shadow-lg shadow-secondary-container/20">1.85</div>
+</div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full w-[94%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Stats -->
+<section class="relative z-10 px-margin-mobile grid grid-cols-2 gap-4 mb-8">
+<div class="col-span-2 glass-card rounded-2xl p-6 relative overflow-hidden h-40 flex flex-col justify-end">
+<div class="relative z-10">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-primary-container uppercase italic neon-text-primary">Análisis Pro</h3>
+<p class="text-body-sm text-on-surface-variant">Análisis experto en los 5 deportes principales incluyendo cobertura de las finales ATP.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Admin Dashboard Screen -->
+<div class="screen-hidden px-margin-mobile pt-6 space-y-8" id="admin-screen">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase tracking-tight italic">Panel de Control</h2>
+<span class="bg-primary-container/10 text-primary-container px-3 py-1 rounded-full text-[10px] font-label-mono border border-primary-container/20">ANALISTA DE SISTEMA</span>
+</div>
+<!-- File Upload Area -->
+<section>
+<div class="relative group cursor-pointer" id="drop-zone">
+<div class="glass-card border-2 border-dashed border-primary-container/30 group-hover:border-primary-container transition-all rounded-2xl p-8 flex flex-col items-center justify-center gap-4 text-center">
+<div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center text-primary-container group-hover:scale-110 transition-transform neon-glow-primary">
+<span class="material-symbols-outlined text-4xl">upload_file</span>
+</div>
+<div>
+<h3 class="text-primary font-bold text-lg">Subir Excel de Datos</h3>
+<p class="text-on-surface-variant text-body-sm mt-1">Hoja multi-deporte (Fútbol, NBA, NFL, MLB, Tenis)</p>
+</div>
+<button class="mt-2 bg-primary-container text-on-primary px-6 py-2 rounded-lg font-label-mono text-sm uppercase tracking-wider font-bold shadow-lg" onclick="handleFileUpload()">Seleccionar Archivo</button>
+</div>
+<input accept=".xlsx,.xls,.csv" class="hidden" id="file-input" onchange="startProcessing()" type="file"/>
+</div>
+</section>
+<!-- Processing State -->
+<section class="hidden" id="processing-state">
+<div class="glass-card rounded-2xl p-6 overflow-hidden relative">
+<div class="shimmer absolute inset-0 opacity-10"></div>
+<div class="flex items-center gap-4 mb-4">
+<div class="w-10 h-10 border-4 border-primary-container border-t-transparent rounded-full animate-spin"></div>
+<div>
+<h3 class="text-primary font-bold">Integración IA en curso...</h3>
+<p class="text-on-surface-variant text-[12px] font-label-mono">ANALIZANDO 5 CONJUNTOS DE DATOS</p>
+</div>
+</div>
+<div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-0 transition-all duration-1000 ease-linear" id="progress-bar"></div>
+</div>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-[10px] font-label-mono bg-white/5 text-on-surface-variant px-2 py-1 rounded">FORMA NBA ✓</span>
+<span class="text-[10px] font-label-mono bg-white/5 text-on-surface-variant px-2 py-1 rounded">LESIÓN NFL ✓</span>
+<span class="text-[10px] font-label-mono bg-white/5 text-on-surface-variant px-2 py-1 rounded animate-pulse">ANALÍTICA MLB...</span>
+</div>
+</div>
+</section>
+<!-- Mejores Pronósticos por Partido (Dinámico) -->
+<section class="hidden space-y-6" id="safe-picks">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="material-symbols-outlined text-primary-container neon-text-primary">verified</span>
+        <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary uppercase italic">Mejores Pronósticos por Partido</h2>
+    </div>
+    
+    <div id="dynamic-picks-container" class="space-y-6">
+        <!-- Las predicciones se generan dinámicamente aquí via JavaScript -->
+    </div>
+
+    <button onclick="generateFullReport()" 
+            class="w-full bg-secondary-container text-on-secondary-container py-4 rounded-xl font-headline-lg-mobile text-xl uppercase italic shadow-lg shadow-secondary-container/20 active:scale-[0.98] transition-transform">
+        Generar Reporte de Análisis Completo
+    </button>
+</section>
+</div>
+<!-- Mis Picks Screen (Integrated from Screen 9) -->
+<div class="screen-hidden px-margin-mobile pt-6 space-y-6" id="picks-screen">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background">Mis Pronósticos</h2>
+<div class="h-1 w-12 bg-primary-container neon-glow-primary"></div>
+</div>
+<!-- Sport Specific Filters -->
+<section class="flex gap-3 overflow-x-auto no-scrollbar py-2 -mx-margin-mobile px-margin-mobile">
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border border-primary-container bg-primary-container text-on-primary shrink-0 transition-all neon-glow-primary">
+<span class="material-symbols-outlined mb-1">apps</span>
+<span class="text-[10px] font-label-mono uppercase font-bold">Todo</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border border-white/10 glass-card text-on-surface-variant shrink-0 hover:border-primary-container/50 transition-all">
+<span class="material-symbols-outlined mb-1 text-primary-container">soccer_balls</span>
+<span class="text-[10px] font-label-mono uppercase">Fútbol</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border border-white/10 glass-card text-on-surface-variant shrink-0 hover:border-primary-container/50 transition-all">
+<span class="material-symbols-outlined mb-1 text-primary-container">sports_basketball</span>
+<span class="text-[10px] font-label-mono uppercase">Basket</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border border-white/10 glass-card text-on-surface-variant shrink-0 hover:border-primary-container/50 transition-all">
+<span class="material-symbols-outlined mb-1 text-primary-container">sports_football</span>
+<span class="text-[10px] font-label-mono uppercase">NFL</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border border-white/10 glass-card text-on-surface-variant shrink-0 hover:border-primary-container/50 transition-all">
+<span class="material-symbols-outlined mb-1 text-primary-container">sports_baseball</span>
+<span class="text-[10px] font-label-mono uppercase">Béisbol</span>
+</button>
+</section>
+<!-- Summary Stats -->
+<section class="grid grid-cols-2 gap-gutter">
+<div class="glass-card p-4 flex flex-col justify-between min-h-[100px]">
+<span class="font-label-mono text-[10px] text-on-surface-variant uppercase">ROI %</span>
+<div class="font-headline-lg text-primary-container neon-text-primary">+14.2%</div>
+</div>
+<div class="glass-card p-4 flex flex-col justify-between min-h-[100px]">
+<span class="font-label-mono text-[10px] text-on-surface-variant uppercase">Racha</span>
+<div class="font-headline-lg text-primary">5W</div>
+</div>
+</section>
+<!-- Pending Section -->
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="font-label-mono text-[10px] text-on-surface-variant uppercase tracking-widest">Pendientes</span>
+<div class="flex-grow border-t border-white/5"></div>
+</div>
+<div class="glass-card p-4 rounded-xl border-l-4 border-primary-container">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary-container">soccer_balls</span>
+<span class="font-label-mono text-[10px] text-on-surface-variant">LALIGA • HOY 21:00</span>
+</div>
+<span class="text-[10px] bg-surface-container-high px-2 py-0.5 rounded-full">EN ESPERA</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-bold text-lg">Real Madrid</span>
+<span class="text-primary-container font-odds-display">1.85</span>
+</div>
+<div class="text-on-surface-variant text-xs mb-2">vs FC Barcelona</div>
+<div class="flex justify-between items-center pt-2 border-t border-white/5">
+<span class="text-[10px] italic opacity-60">Mercado: Ganador Final</span>
+<span class="text-primary-container font-bold">$50.00</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-background/90 backdrop-blur-xl text-primary-container border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] flex justify-around items-center h-16 px-gutter pb-safe">
+<a class="flex flex-col items-center justify-center text-primary-container transition-transform duration-300" href="#" onclick="showScreen('home-screen')">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-mono text-[10px] uppercase">Inicio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 transition-opacity" href="#" onclick="showScreen('picks-screen')">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-mono text-[10px] uppercase">Mis Picks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 transition-opacity" href="#" onclick="showScreen('admin-screen')">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-label-mono text-[10px] uppercase">Admin</span>
+</a>
+</nav>
+<!-- FAB for Quick Bet -->
+<button class="fixed bottom-24 right-margin-mobile w-14 h-14 bg-primary-container text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-95 transition-transform neon-glow-primary">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<script>
+    function toggleDrawer() {
+        const drawer = document.getElementById('nav-drawer');
+        drawer.classList.toggle('-translate-x-full');
+        drawer.classList.toggle('drawer-open');
+    }
+
+    function showScreen(screenId) {
+        const screens = ['home-screen', 'admin-screen', 'picks-screen'];
+        screens.forEach(id => {
+            document.getElementById(id).classList.add('screen-hidden');
+        });
+        
+        document.getElementById(screenId).classList.remove('screen-hidden');
+        
+        const title = document.getElementById('page-title');
+        if (screenId === 'admin-screen') {
+            title.innerText = 'VELOCITY ADMIN';
+            title.classList.add('text-secondary-container');
+            title.classList.remove('text-primary-container');
+        } else if (screenId === 'picks-screen') {
+            title.innerText = 'MIS PRONÓSTICOS';
+            title.classList.add('text-primary-container');
+            title.classList.remove('text-secondary-container');
+        } else {
+            title.innerText = 'VELOCITY APUESTAS';
+            title.classList.add('text-primary-container');
+            title.classList.remove('text-secondary-container');
+        }
+        window.scrollTo(0,0);
+    }
+
+    function handleFileUpload() {
+        document.getElementById('file-input').click();
+    }
+
+    function startProcessing() {
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const processing = document.getElementById('processing-state');
+        const progress = document.getElementById('progress-bar');
+        const safePicks = document.getElementById('safe-picks');
+
+        if (!fileInput.files.length) {
+            alert("Por favor selecciona un archivo Excel primero.");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        
+        dropZone.classList.add('hidden');
+        processing.classList.remove('hidden');
+
+        // Read Excel file using SheetJS
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                console.log("Datos del Excel:", jsonData);
+                
+                // Simulate AI processing
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            processing.classList.add('hidden');
+                            safePicks.classList.remove('hidden');
+                            
+                            // Generate dynamic predictions per match
+                            generateDynamicPicks(jsonData);
+                        }, 400);
+                    } else {
+                        width += 3;
+                        progress.style.width = width + '%';
+                    }
+                }, 35);
+                
+            } catch (error) {
+                alert("Error al leer el archivo Excel. Asegúrate de que sea un archivo .xlsx o .xls válido.");
+                processing.classList.add('hidden');
+                dropZone.classList.remove('hidden');
+            }
+        };
+        
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Micro-interactions for odds buttons
+    document.querySelectorAll('button.bg-surface-container-low, .grid button').forEach(button => {
+        button.addEventListener('click', function() {
+            const siblingButtons = this.parentElement.querySelectorAll('button');
+            if(siblingButtons.length > 1) {
+                siblingButtons.forEach(btn => btn.classList.remove('active-odds'));
+                this.classList.add('active-odds');
+            }
+            if (window.navigator.vibrate) {
+                window.navigator.vibrate(12);
+            }
+        });
+    });
+
+    // Generate dynamic best predictions per match (using real Excel probabilities)
+    function generateDynamicPicks(matches) {
+        const container = document.getElementById('dynamic-picks-container');
+        container.innerHTML = '';
+
+        if (!matches || matches.length === 0) {
+            container.innerHTML = `<p class="text-center text-on-surface-variant">No se encontraron partidos en el archivo.</p>`;
+            return;
+        }
+
+        matches.forEach((match) => {
+            const home = match.home || match.Home || match.Local || 'Local';
+            const away = match.away || match.Away || match.Visitante || 'Visitante';
+            const league = match.league || match.League || match.Liga || 'Liga';
+
+            // Generate smart predictions using real probabilities from Excel
+            const pick1 = generateSmartResultPick(match, home, away);
+            const pick2 = generateSmartGoalsPick(match, home, away);
+
+            const cardHTML = `
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-l-primary-container">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <span class="font-label-mono text-[10px] text-primary-container uppercase">${league}</span>
+                            <h3 class="text-lg font-bold text-primary">${home} vs ${away}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Prediction 1: Result -->
+                    <div class="mb-3 p-3 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-label-mono text-xs text-primary-container">MEJOR PRONÓSTICO 1</span>
+                                <div class="font-bold text-primary">${pick1.prediction}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-odds-display text-xl text-primary-container">${pick1.odds}</div>
+                                <div class="text-xs text-primary-container">${pick1.confidence}% confianza</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mt-2">${pick1.insight}</p>
+                    </div>
+
+                    <!-- Prediction 2: Goals -->
+                    <div class="p-3 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-label-mono text-xs text-primary-container">MEJOR PRONÓSTICO 2</span>
+                                <div class="font-bold text-primary">${pick2.prediction}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-odds-display text-xl text-primary-container">${pick2.odds}</div>
+                                <div class="text-xs text-primary-container">${pick2.confidence}% confianza</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mt-2">${pick2.insight}</p>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML += cardHTML;
+        });
+    }
+
+    // Smart Result prediction using 1X2 probabilities from Excel
+    function generateSmartResultPick(match, home, away) {
+        const h = parseFloat(match['1x2_h'] || match['1X2_H'] || 0);
+        const d = parseFloat(match['1x2_d'] || match['1X2_D'] || 0);
+        const a = parseFloat(match['1x2_a'] || match['1X2_A'] || 0);
+
+        let prediction = `Victoria ${home}`;
+        let confidence = 78;
+        let insight = `Análisis de probabilidades favorece al local.`;
+
+        if (a > h && a > d) {
+            prediction = `Victoria ${away}`;
+            confidence = Math.floor(a * 100);
+            insight = `Alta probabilidad de victoria visitante según los datos.`;
+        } else if (d > h && d > a) {
+            prediction = `Empate`;
+            confidence = Math.floor(d * 100);
+            insight = `El empate es la opción más probable según el modelo.`;
+        } else {
+            confidence = Math.floor(h * 100);
+        }
+
+        // Suggested odds (inverse of probability with margin)
+        const odds = (1 / (confidence / 100) * 0.92).toFixed(2);
+
+        return { prediction, odds, confidence: Math.min(confidence, 94), insight };
+    }
+
+    // Smart Goals prediction using Over/Under probabilities
+    function generateSmartGoalsPick(match, home, away) {
+        const overProb = parseFloat(match['o_2.5'] || match['o2.5'] || match['Over2.5'] || 0);
+        const underProb = parseFloat(match['u_2.5'] || match['u2.5'] || match['Under2.5'] || 0);
+
+        let prediction = `Más de 2.5 Goles`;
+        let confidence = 78;
+        let insight = `Ambos equipos suelen generar partidos abiertos.`;
+
+        if (underProb > overProb) {
+            prediction = `Menos de 2.5 Goles`;
+            confidence = Math.floor(underProb * 100);
+            insight = `Datos indican partido con baja anotación.`;
+        } else {
+            confidence = Math.floor(overProb * 100) || 81;
+        }
+
+        const odds = (1 / (confidence / 100) * 0.93).toFixed(2);
+
+        return { prediction, odds, confidence: Math.min(confidence, 92), insight };
+    }
+
+    function generateFullReport() {
+        alert("Reporte completo generado. (Funcionalidad completa se puede agregar en siguiente iteración)");
+    }
+</script>
+</body></html>
