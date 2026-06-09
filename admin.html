@@ -627,7 +627,7 @@
         });
     });
 
-    // Generate dynamic best predictions per match
+    // Generate dynamic best predictions per match (using real Excel probabilities)
     function generateDynamicPicks(matches) {
         const container = document.getElementById('dynamic-picks-container');
         container.innerHTML = '';
@@ -637,15 +637,14 @@
             return;
         }
 
-        matches.forEach((match, index) => {
-            // Get match info (flexible with different column names)
-            const home = match.Home || match.Local || match.Equipo1 || match.Team1 || 'Local';
-            const away = match.Away || match.Visitante || match.Equipo2 || match.Team2 || 'Visitante';
-            const league = match.League || match.Liga || match.Competicion || 'Partido';
+        matches.forEach((match) => {
+            const home = match.home || match.Home || match.Local || 'Local';
+            const away = match.away || match.Away || match.Visitante || 'Visitante';
+            const league = match.league || match.League || match.Liga || 'Liga';
 
-            // Generate 2 strong predictions per match
-            const pick1 = generateSmartPick(home, away, 'result');
-            const pick2 = generateSmartPick(home, away, 'goals');
+            // Generate smart predictions using real probabilities from Excel
+            const pick1 = generateSmartResultPick(match, home, away);
+            const pick2 = generateSmartGoalsPick(match, home, away);
 
             const cardHTML = `
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-l-primary-container">
@@ -656,7 +655,7 @@
                         </div>
                     </div>
 
-                    <!-- Prediction 1 -->
+                    <!-- Prediction 1: Result -->
                     <div class="mb-3 p-3 bg-white/5 rounded-xl border border-white/10">
                         <div class="flex justify-between items-center">
                             <div>
@@ -671,7 +670,7 @@
                         <p class="text-xs text-on-surface-variant mt-2">${pick1.insight}</p>
                     </div>
 
-                    <!-- Prediction 2 -->
+                    <!-- Prediction 2: Goals -->
                     <div class="p-3 bg-white/5 rounded-xl border border-white/10">
                         <div class="flex justify-between items-center">
                             <div>
@@ -692,23 +691,54 @@
         });
     }
 
-    // Simple smart pick generator (can be improved later with real logic)
-    function generateSmartPick(home, away, type) {
-        if (type === 'result') {
-            return {
-                prediction: `Victoria ${home}`,
-                odds: (Math.random() * 0.8 + 1.6).toFixed(2),
-                confidence: Math.floor(Math.random() * 12) + 84,
-                insight: `Análisis de forma reciente y H2H favorece fuertemente al local.`
-            };
+    // Smart Result prediction using 1X2 probabilities from Excel
+    function generateSmartResultPick(match, home, away) {
+        const h = parseFloat(match['1x2_h'] || match['1X2_H'] || 0);
+        const d = parseFloat(match['1x2_d'] || match['1X2_D'] || 0);
+        const a = parseFloat(match['1x2_a'] || match['1X2_A'] || 0);
+
+        let prediction = `Victoria ${home}`;
+        let confidence = 78;
+        let insight = `Análisis de probabilidades favorece al local.`;
+
+        if (a > h && a > d) {
+            prediction = `Victoria ${away}`;
+            confidence = Math.floor(a * 100);
+            insight = `Alta probabilidad de victoria visitante según los datos.`;
+        } else if (d > h && d > a) {
+            prediction = `Empate`;
+            confidence = Math.floor(d * 100);
+            insight = `El empate es la opción más probable según el modelo.`;
         } else {
-            return {
-                prediction: `Más de 2.5 Goles`,
-                odds: (Math.random() * 0.6 + 1.75).toFixed(2),
-                confidence: Math.floor(Math.random() * 15) + 78,
-                insight: `Ambos equipos tienen alto promedio de goles en partidos recientes.`
-            };
+            confidence = Math.floor(h * 100);
         }
+
+        // Suggested odds (inverse of probability with margin)
+        const odds = (1 / (confidence / 100) * 0.92).toFixed(2);
+
+        return { prediction, odds, confidence: Math.min(confidence, 94), insight };
+    }
+
+    // Smart Goals prediction using Over/Under probabilities
+    function generateSmartGoalsPick(match, home, away) {
+        const overProb = parseFloat(match['o_2.5'] || match['o2.5'] || match['Over2.5'] || 0);
+        const underProb = parseFloat(match['u_2.5'] || match['u2.5'] || match['Under2.5'] || 0);
+
+        let prediction = `Más de 2.5 Goles`;
+        let confidence = 78;
+        let insight = `Ambos equipos suelen generar partidos abiertos.`;
+
+        if (underProb > overProb) {
+            prediction = `Menos de 2.5 Goles`;
+            confidence = Math.floor(underProb * 100);
+            insight = `Datos indican partido con baja anotación.`;
+        } else {
+            confidence = Math.floor(overProb * 100) || 81;
+        }
+
+        const odds = (1 / (confidence / 100) * 0.93).toFixed(2);
+
+        return { prediction, odds, confidence: Math.min(confidence, 92), insight };
     }
 
     function generateFullReport() {
