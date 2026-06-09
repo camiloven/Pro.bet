@@ -5,6 +5,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Velocity Betting - Mis Pronósticos</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
@@ -198,10 +199,17 @@
 </section>
 <!-- Active/Pending Picks -->
 <section class="space-y-4 pt-4">
-<div class="flex items-center gap-2">
-<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest">Pendientes</span>
-<div class="flex-grow border-t border-white/5"></div>
+<div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+        <span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-widest">Pendientes</span>
+    </div>
+    <button onclick="uploadExcelForPicks()" 
+            class="flex items-center gap-2 px-4 py-1.5 text-xs font-label-mono bg-primary-container text-on-primary-container rounded-lg hover:bg-primary-container/90 transition-colors">
+        <span class="material-symbols-outlined text-base">upload_file</span>
+        <span>Cargar desde Excel</span>
+    </button>
 </div>
+<input type="file" id="excel-input-mispicks" accept=".xlsx,.xls,.csv" class="hidden" onchange="loadPicksFromExcel(event)">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
 <!-- Pick Card 1 -->
 <div class="glass-card p-4 flex flex-col gap-3 relative overflow-hidden group hover:border-primary-container transition-colors duration-300">
@@ -347,5 +355,85 @@
                 card.style.transform = 'scale(1)';
             });
         });
+
+        // Upload Excel for Mis Picks
+        function uploadExcelForPicks() {
+            document.getElementById('excel-input-mispicks').click();
+        }
+
+        function loadPicksFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Prefer soccer sheet, fallback to first sheet
+                    let sheet = workbook.Sheets['soccer'] || workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    if (jsonData.length === 0) {
+                        alert("El archivo no contiene datos.");
+                        return;
+                    }
+
+                    // Replace pending picks with data from Excel (show first 4)
+                    renderDynamicPendingPicks(jsonData.slice(0, 4));
+                    
+                } catch (err) {
+                    alert("Error al leer el archivo Excel.");
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderDynamicPendingPicks(matches) {
+            const container = document.querySelector('#pending-picks-container') || createPendingContainer();
+            container.innerHTML = '';
+
+            matches.forEach(match => {
+                const home = match.home || match.Home || match.Local || 'Local';
+                const away = match.away || match.Away || match.Visitante || 'Visitante';
+                const league = match.league || match.League || match.Liga || 'Liga';
+
+                const card = document.createElement('div');
+                card.className = `glass-card p-4 flex flex-col gap-3 relative overflow-hidden group hover:border-primary-container transition-colors duration-300`;
+                card.innerHTML = `
+                    <div class="absolute top-0 left-0 w-1 h-full bg-primary-container"></div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-primary-container">sports_soccer</span>
+                            <span class="font-label-mono text-label-mono text-on-surface-variant">${league}</span>
+                        </div>
+                        <span class="font-label-mono text-label-mono px-2 py-0.5 bg-surface-container-high rounded-full">EN ESPERA</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-headline-lg-mobile text-headline-lg-mobile">${home}</span>
+                            <span class="font-odds-display text-odds-display text-primary-container">1.XX</span>
+                        </div>
+                        <div class="text-on-surface-variant text-body-sm">vs ${away}</div>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-white/5 text-xs">
+                        <span class="text-on-surface-variant">Mercado: Ganador Final</span>
+                        <span class="font-medium">$50.00</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function createPendingContainer() {
+            const section = document.querySelector('section.space-y-4.pt-4');
+            const grid = document.createElement('div');
+            grid.id = 'pending-picks-container';
+            grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-gutter mt-3';
+            section.appendChild(grid);
+            return grid;
+        }
     </script>
 </body></html>
